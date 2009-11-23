@@ -11,11 +11,14 @@ More appropriate description would be added later.
 WARNING: Current benchmark system code is weird. You've been warned.
          Patches are welcome. ;-)
 
+$ ./kbench.sh 'bench.lua bench/arguments.lua ' 2e6 2>&1 | lua kbenchparse.lua
+
 Benchmark file standard:
 ------------------------
 
 -- Return all methods from the file's main chunk
 -- Return recommended number of iterations as NUM_ITERATIONS key
+   (ignored in current implementation)
 
 Example:
 
