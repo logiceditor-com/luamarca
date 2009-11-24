@@ -30,7 +30,7 @@ bench.use_setmetatable = function()
 end
 
 bench.use_closure = function()
-  f("boo!")
+  fn_obj("boo!")
 end
 
 return bench

@@ -5,6 +5,8 @@ local call_noargs = function(fn) fn() end
 local call_vararg = function(fn, ...) fn(...) end
 local call_3 = function(fn, a, b, c) fn(a, b, c) end
 
+local bench = { }
+
 bench.noop = noop
 
 bench.vararg_callback = vararg_callback

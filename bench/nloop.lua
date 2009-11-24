@@ -11,32 +11,32 @@ local bench = {}
 -- 2. Return hole position.
 
 bench.loop_ipairs = function()
---  local j
+  local j
   for i, v in ipairs(t) do
---    t[i] = 0
---    j = i
+    t[i] = 0
+    j = i
   end
---  return j + 1
+  return j + 1
 end
 
 bench.loop_for = function()
---  local n = #t
---  local j = n
+  local n = #t
+  local j = n
   for i = 1, n do
---    local v = t[i]
+    local v = t[i]
     if v == nil then
---      j = i
+      j = i
       break
     end
---    t[i] = 0
+    t[i] = 0
   end
---  return j
+  return j
 end
 
 bench.loop_while = function()
---  local i = 1
+  local i = 1
   while t[i] ~= nil do
---    t[i] = 0
+    t[i] = 0
     i = i + 1
   end
   return i
