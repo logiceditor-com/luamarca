@@ -14,7 +14,8 @@ do
     if method and name and iterations then
       cur_method, cur_name, cur_iterations = method, name, iterations
     else
-      local timing = line:match(".-([%d%.]+) real.*")
+      -- TODO: WTF?! Expected time command output should be fixed.
+      local timing = line:match(".-([%d%.]+) real.*") or line:match(".-real ([%d%.]+).*")
       if timing then
         local method_data = data[cur_method]
         method_data[#method_data + 1] =
