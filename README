@@ -13,6 +13,10 @@ WARNING: Current benchmark system code is weird. You've been warned.
 
 $ ./kbench.sh 'bench.lua bench/arguments.lua ' 2e6 2>&1 | lua kbenchparse.lua
 
+NOTE: Always run smoke check before submitting new benchmarks:
+
+$ etc/smoke.sh bench/*.lua
+
 Benchmark file standard:
 ------------------------
 
