@@ -11,7 +11,7 @@ More appropriate description would be added later.
 WARNING: Current benchmark system code is weird. You've been warned.
          Patches are welcome. ;-)
 
-$ ./kbench.sh 'bench.lua bench/arguments.lua ' 2e6 2>&1 | lua kbenchparse.lua
+$ ./run_benchmark.sh bench/arguments.lua 2e6
 
 NOTE: Always run smoke check before submitting new benchmarks:
 
