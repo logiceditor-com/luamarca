@@ -85,7 +85,7 @@ do
     return ((...) ~= nil) and impl(arg_n + 1, ...) or true
   end
 
-  arguments_recursive = function(...)
+  local arguments_recursive = function(...)
     local nargs = select('#', ...)
     return (nargs > 0)
        and impl(1, ...)
@@ -143,7 +143,7 @@ do
     return ((...) ~= nil) and impl(is_optional, arg_n + 1, ...) or true
   end
 
-  arguments_recursive = function(...)
+  local arguments_recursive = function(...)
     local nargs = select('#', ...)
     return (nargs > 0)
        and (

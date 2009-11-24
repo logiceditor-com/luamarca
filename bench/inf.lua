@@ -1,3 +1,6 @@
+local tonumber = tonumber
+local math_huge = math.huge
+
 local bench = {}
 
 bench.e309 = function()
@@ -5,7 +8,7 @@ bench.e309 = function()
 end
 
 bench.huge = function()
-  local inf = math.huge
+  local inf = math_huge
 end
 
 bench.divide = function()

@@ -1,3 +1,5 @@
+local ipairs = ipairs
+
 local t = {}
 for i = 1, 55 do
   t[i] = i

@@ -1,3 +1,5 @@
+local pairs, next = pairs, next
+
 local t = {}
 for i = 1, 50 do
   t[i] = i -- Array part
