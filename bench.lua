@@ -9,11 +9,11 @@ if filename == "" then
 else
   local res, err = loadfile(filename)
   if not res then
-    io.stderr:write("Failed to load file ", tostring(filename), " :\n", tostring(err), "\n")
+    io.stderr:write("Failed to load file ", tostring(filename), ":\n", tostring(err), "\n")
   else
     local status, res = pcall(res)
     if not status then
-      io.stderr:write("Failed to run file ", tostring(filename), " :\n", tostring(res), "\n")
+      io.stderr:write("Failed to run file ", tostring(filename), ":\n", tostring(res), "\n")
     elseif type(res) ~= "table" then
       io.stderr:write(
           "Bad file ", tostring(filename),
