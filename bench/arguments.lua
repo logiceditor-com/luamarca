@@ -165,6 +165,96 @@ end
 
 --------------------------------------------------------------------------------
 
+-- TODO: Add a version with full-blown validation.
+local run_arguments_unroll_simple
+do
+  -- TODO: Put a code-generation metatable over cache
+  --       and pre-populate it for cases with (1-10) * 2 arguments.
+  --       If __index sees odd number, it should crash
+  --       with dangling argument error.
+  local arguments_cache =
+  {
+    [6] = function(t1, v1, t2, v2, t3, v3)
+      if type(v1) ~= t1 then
+        error(
+            "argument #1: expected `"..tostring(t1)
+         .. "', got `"..type(v1).."'",
+            4
+          )
+      end
+      if type(v2) ~= t2 then
+        error(
+            "argument #2: expected `"..tostring(t2)
+         .. "', got `"..type(v2).."'",
+            4
+          )
+      end
+      if type(v3) ~= t3 then
+        error(
+            "argument #3: expected `"..tostring(t3)
+         .. "', got `"..type(v3).."'",
+            4
+          )
+      end
+    end;
+  }
+
+  local arguments = function(...)
+    local n = select("#", ...)
+    -- Assuming cache is pre-populated for all possible use-cases
+    return assert(arguments_cache[n])(...)
+  end
+
+  run_arguments_unroll_simple = function(a, b, c)
+    arguments(
+        "number", a,
+        "boolean", b,
+        "string", c
+      )
+  end
+end
+
+--------------------------------------------------------------------------------
+
+local run_arguments_hardcoded_simple
+do
+  -- Not much real-word meaning, just for comparison with
+  -- run_arguments_unroll_simple.
+  local hardcoded_arguments_6 = function(t1, v1, t2, v2, t3, v3)
+    if type(v1) ~= t1 then
+      error(
+          "argument #1: expected `"..tostring(t1)
+       .. "', got `"..type(v1).."'",
+          2
+        )
+    end
+    if type(v2) ~= t2 then
+      error(
+          "argument #2: expected `"..tostring(t2)
+       .. "', got `"..type(v2).."'",
+          2
+        )
+    end
+    if type(v3) ~= t3 then
+      error(
+          "argument #3: expected `"..tostring(t3)
+       .. "', got `"..type(v3).."'",
+          2
+        )
+    end
+  end
+
+  run_arguments_hardcoded_simple = function(a, b, c)
+    hardcoded_arguments_6(
+        "number", a,
+        "boolean", b,
+        "string", c
+      )
+  end
+end
+
+--------------------------------------------------------------------------------
+
 local bench = { }
 
 bench.plain_assert = function()
@@ -193,6 +283,14 @@ end
 
 bench.args_recursive_ln = function()
   run_arguments_recursive_lua_nucleo(42, true, "aaa")
+end
+
+bench.args_unroll_simple = function()
+  run_arguments_unroll_simple(42, true, "aaa")
+end
+
+bench.args_hard_simple = function()
+  run_arguments_hardcoded_simple(42, true, "aaa")
 end
 
 return bench
