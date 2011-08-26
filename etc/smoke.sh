@@ -7,7 +7,20 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-LUA=lua
+LUA="$(which luajit2)"
+if [ -z "${LUA}" ]; then
+  LUA="$(which luajit)"
+
+  if [ -z "${LUA}" ]; then
+    LUA="$(which lua)"
+
+    if [ -z "${LUA}" ]; then
+      echo "Error: luajit2, luajit and lua executables not found" >&2
+      exit 1
+    fi
+  fi
+fi
+
 LUAC=luac
 
 SYNTAX="${LUAC} -p"
