@@ -2,8 +2,8 @@
 -- tclone.lua: tclone benchmark
 --------------------------------------------------------------------------------
 
-local type, pairs, assert, error, unpack, newproxy
-    = type, pairs, assert, error, unpack, newproxy
+local type, pairs, assert, error, unpack, next, newproxy
+    = type, pairs, assert, error, unpack, next, newproxy
 
 local math_randomseed, math_random
     = math.randomseed, math.random
@@ -135,6 +135,55 @@ do
   end
 end
 
+--
+-- tclone6 by Dimiter "malkia" Stanev
+-- http://article.gmane.org/gmane.comp.lang.lua.general/82601
+-- With a fix in while condition
+--
+local tclone6
+do
+  local function impl(t, visited, rtimes)
+    if visited[t] then
+      error("recursion detected")
+    end
+
+    if rtimes == 128 then
+      rtimes = 1
+      visited[t] = true
+    end
+
+    local r = { }
+    local k, v = next(t)
+    while k ~= nil do
+      if type(k) == "table"  then
+        if type(v) == "table" then
+          r[impl(k, visited, rtimes + 1)] = impl(v, visited, rtimes + 1)
+        else
+          r[impl(k, visited, rtimes + 1)] = v
+        end
+      elseif type(v) == "table" then
+        r[k] = impl(v, visited, rtimes + 1)
+      else
+        r[k] = v
+      end
+      k, v = next(t, k)
+    end
+
+    if rtimes == 1 then
+      visited[t] = nil
+    end
+
+    return r
+  end
+
+  tclone6 = function(t)
+    if type(t) == "table" then
+      return impl(t, { }, 1)
+    end
+
+    return t
+  end
+end
 --------------------------------------------------------------------------------
 
 -- TODO: From lua-nucleo/test/table.lua.
@@ -236,6 +285,12 @@ bench.tclone2 = function()
 end
 
 bench.tclone5 = function()
+  local data = tclone5(DATA)
+  assert(data ~= DATA)
+  -- TODO: Check equality.
+end
+
+bench.tclone6 = function()
   local data = tclone5(DATA)
   assert(data ~= DATA)
   -- TODO: Check equality.
