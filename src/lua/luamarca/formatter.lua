@@ -7,7 +7,8 @@
 --Prints raw data
 local dump_raw_data = function(data)
   for method, method_data in pairs(data) do
-    for i, v in ipairs(method_data) do
+    for i = 1, #method_data do
+      local v = method_data[i]
       print(
           method,
           v.name,
@@ -25,18 +26,19 @@ local print_bargraph = function(data)
 
     local groups = setmetatable({ }, { 
         __index = function(t, k) 
-            local v = {} 
+            local v = { } 
             rawset(t, k, v) 
             return v 
           end 
         }
       )
 
-    local benches = {}
+    local benches = { }
 
     local max_timing = 0
 
-    for i, v in ipairs(method_data) do
+    for i = 1, #method_data do
+      local v = method_data[i]
       v.group, v.bench = v.name:match("(.-)@(.*)")
       v.group = v.group ~= "" and (v.group or v.name) or "(?)"
       v.bench = v.bench ~= "" and v.bench or "(?)"
@@ -54,15 +56,15 @@ local print_bargraph = function(data)
     --max_timing = 65
 
     local old_benches = benches
-    benches = {}
+    benches = { }
     for bench, _ in pairs(old_benches) do
       benches[#benches + 1] = bench
     end
     table.sort(benches)
 
     io.write("=cluster")
-    for _, bench in ipairs(benches) do
-      io.write(";", bench)
+    for i = 1, #benches do
+      io.write(";", benches[i])
     end
     io.write("\n")
 
@@ -79,8 +81,8 @@ local print_bargraph = function(data)
 
     for group, group_data in pairs(groups) do
       io.write(group)
-      for _, bench in ipairs(benches) do
-        io.write("\t", assert(group_data[bench]).timing)
+      for i = 1, #benches do
+        io.write("\t", assert(group_data[benches[i]]).timing)
       end
       io.write("\n")
     end
@@ -109,7 +111,8 @@ local print_table = function(data)
 
       local fastest = method_data[1].timing
 
-      for i, v in ipairs(method_data) do
+      for i = 1, #method_data do
+        local v = method_data[i]
         print(
             ("%20s | %7.4f | %6.2f / %10d = %f us"):format(
                 v.name,
