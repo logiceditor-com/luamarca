@@ -3,8 +3,6 @@ Luamarca TODO list:
 
 -- Make interpreter list configurable
 
--- Redesign and rewrite test running framework to pure Lua.
-
 -- Update or remove benchmarks in notready/ folder
 
 -- Document the intent of each benchmark
