@@ -1,36 +1,10 @@
-local data = setmetatable(
-    {},
-    { __index = function(t, k) local v = {} rawset(t, k, v) return v end; }
-  )
+--------------------------------------------------------------------------------
+-- formatter.lua: benchmark results printing utillity
+-- This file is a part of luamarca library
+-- Copyright (c) luamarca authors (see file `COPYRIGHT` for the license)
+--------------------------------------------------------------------------------
 
-do
-  local cur_method, cur_name, cur_iterations = "(unknown)", "(unknown)", 0
-  for line in io.lines() do
-    --print(line)
-
-    local method, name, iterations = line:match(
-        ".-interpreter '(.-)' command '.-' method '(.-)' num_iter '([%deE%-]+)'"
-      )
-    if method and name and iterations then
-      cur_method, cur_name, cur_iterations = method, name, iterations
-    else
-      -- TODO: WTF?! Expected time command output should be fixed.
-      local timing = line:match("^%s*real%s*([%d%.]+)%s*$")
-      if timing then
-        local method_data = data[cur_method]
-        method_data[#method_data + 1] =
-        {
-          method = cur_method;
-          name = cur_name;
-          iterations = cur_iterations;
-          timing = tonumber(timing);
-        }
-        cur_method, cur_name = "(unknown)", "(unknown)"
-      end
-    end
-  end
-end
-
+--Prints raw data
 local dump_raw_data = function(data)
   for method, method_data in pairs(data) do
     for i, v in ipairs(method_data) do
@@ -44,15 +18,20 @@ local dump_raw_data = function(data)
   end
 end
 
-local mode = select(1, ...) or "table"
-if mode == "raw" then
-  dump_raw_data(data)
-elseif mode == "bargraph" then
-
-  for method, method_data in pairs(data) do -- TODO: Write methods separately
+--Prints data for bargraph.pl tool
+local print_bargraph = function(data)
+  for method, method_data in pairs(data) do
     io.write("# begin method ", method, "\n")
 
-    local groups = setmetatable({}, { __index = function(t, k) v = {} rawset(t, k, v) return v end })
+    local groups = setmetatable({ }, { 
+        __index = function(t, k) 
+            local v = {} 
+            rawset(t, k, v) 
+            return v 
+          end 
+        }
+      )
+
     local benches = {}
 
     local max_timing = 0
@@ -108,8 +87,9 @@ elseif mode == "bargraph" then
 
     io.write("# end method ", method, "\n")
   end
+end
 
-elseif mode == "table" then
+local print_table = function(data)
   print("Results:")
 
   for method, method_data in pairs(data) do
@@ -142,6 +122,23 @@ elseif mode == "table" then
       end
     end
   end
-else
-  error("unknown mode")
 end
+
+--------------------------------------------------------------------------------
+local format = function(data, mode) 
+  mode = mode or 'table'
+
+  if mode == "raw" then
+    dump_raw_data(data)
+  elseif mode == "bargraph" then
+    print_bargraph(data)
+  elseif mode == "table" then
+    print_table(data)
+  else
+    print("Unknown mode: " .. mode)
+  end
+end
+
+return {
+  format = format;
+}

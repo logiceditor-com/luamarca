@@ -1,44 +1,94 @@
-local num_iter_default = 1000000
+--------------------------------------------------------------------------------
+-- benchmark.lua: benchmarking utillity
+-- This file is a part of luamarca library
+-- Copyright (c) luamarca authors (see file `COPYRIGHT` for the license)
+--------------------------------------------------------------------------------
 
-local filename = tostring(select(1, ...) or "")
-local option = tostring(select(2, ...) or "")
-local num_iter = tonumber(select(3, ...) or num_iter_default)
+require "socket"
 
-if filename == "" then
-  io.stderr:write("Usage: lua bench.lua <filename.lua> <method> <num_iter>\n")
-else
-  local res, err = loadfile(filename)
-  if not res then
-    io.stderr:write("Failed to load file ", tostring(filename), ":\n", tostring(err), "\n")
-  else
-    local status, res = pcall(res)
-    if not status then
-      io.stderr:write("Failed to run file ", tostring(filename), ":\n", tostring(res), "\n")
-    elseif type(res) ~= "table" then
-      io.stderr:write(
-          "Bad file ", tostring(filename),
-          " result: handler_map table expected, got ", tostring(res), "\n"
-        )
-    else
-      local handler = res[option]
-      if not handler then
-        print ([[
-      Usage: lua bench.lua <filename.lua> <method> <num_iter>
-      <method>: for file ]]..filename..[[ one of]])
-      for name, method in pairs(res) do
-        print("* "..name)
-      end
-        print([[
-      <num_iter> : number of iterations, default ]]..num_iter_default..[[
-      ]])
-      else
-        for i = 1, num_iter do
-          handler()
-        end
-      end
-    end
+local split_by_char
+      = import 'lua-nucleo/string.lua'
+      {
+        'split_by_char'
+      }
+
+--------------------------------------------------------------------------------
+
+local benchmark = { 
+    --Comma separatd list of methods allowed for benchmarking. Empty list means 
+    --all methods will be benchmarked
+    methods = '';
+  }
+
+--Run single method with a specified number of times.
+--@param method Method name
+--@param handler Method function
+--@param number_iterations Number of iterations
+local execute_method = function(method, handler, number_iterations)
+  local t0 = socket.gettime()
+  
+  for i = 1, number_iterations do
+    handler()
   end
+  
+  local t1 = socket.gettime()
+
+  return {
+      name = method;
+      iterations = number_iterations;
+      timing = t1 - t0;
+    }
 end
 
-io.stderr:flush()
-io.stdout:flush()
+--Run all methods in a single benchmark suite. 
+--Note: this method can run only filtered methods if benchmark.filtered methods
+--is specified
+--@param number_iterations Number of iterations
+local execute = function(self, number_iterations)
+  local results = { }
+
+  if self.methods ~= '' then
+    local methods = split_by_char(self.methods, ',')
+    for i = 1, #methods do
+      local method = methods[i]
+      local handler = self.handlers[method]
+      table.insert(results, execute_method(method, handler, number_iterations))
+    end
+  else
+    for method, handler in pairs(self.handlers) do
+      table.insert(results, execute_method(method, handler, number_iterations))
+    end
+  end
+
+  return results
+end
+
+--Load benchmark suite from file
+--@param filename benchmark suite file name
+local load_benchmark = function(filename) 
+  local res, err = loadfile(filename)
+  if not res then
+    return nil, "Failed to load file " .. filename .. ":\n" .. tostring(err)
+  end
+
+  local status, res = pcall(res)
+  
+  if not status then
+    return nil, "Failed to run file " .. filename .. ":\n" .. tostring(res)
+  end
+  
+  if type(res) ~= "table" then
+    return nil, "Bad file " .. filename 
+        .. " result: handler_map table expected, got " .. tostring(res)
+  end
+
+  return {
+    handlers = res;
+    filename = filename;
+    execute = execute;
+  }
+end
+
+return {
+  load_benchmark = load_benchmark;
+}
