@@ -39,3 +39,12 @@ Example:
     end
 
     return bench
+
+'bargraph' output mode:
+-----------------------
+
+To make bar chart from benchmark data you need a bargraph.pl tool. You can get it 
+from here: http://www.burningcutlery.com/derek/bargraph/
+
+$ luamarca bench/benchmark.lua --output=bargraph >barchart.data; perl bargraph.pl -png barchart.data > barchart.png
+
