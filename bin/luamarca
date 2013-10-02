@@ -1,4 +1,4 @@
-#!/usr/bin/env lua
+#!/usr/bin/env lua5.1
 
 --------------------------------------------------------------------------------
 -- luamarca: benchmarking utillity
@@ -18,6 +18,18 @@ local tserialize = import 'lua-nucleo/tserialize.lua' { 'tserialize' }
 
 local ordered_pairs = import 'lua-nucleo/tdeepequals.lua' { 'ordered_pairs' }
 
+local split_by_char
+      = import 'lua-nucleo/string.lua'
+      {
+        'split_by_char'
+      }
+
+local shell_read
+      = import 'lua-aplicado/shell.lua'
+      { 
+        'shell_read' 
+      }
+
 --------------------------------------------------------------------------------
 
 local format
@@ -34,32 +46,54 @@ local load_benchmark
 
 --------------------------------------------------------------------------------
 
+local match = string.match
+
+--------------------------------------------------------------------------------
+
 local TOOL_NAME = "luamarca"
 
 local CONFIG = parse_arguments(TOOL_NAME, ...)
 
+local KNOWN_EXECUTABLES = { "lua5.1", "lua5.2", "luajit -O", "luajit2" }
+
 --------------------------------------------------------------------------------
 
-local execute = function(command)
-  local handle = io.popen(command)
-  local result = handle:read('*a')
-  handle:close()
+local execute = function(...)
+  local args = { ... }
 
-  return result
+  local external_call = function()
+    return shell_read(unpack(args))
+  end
+
+  return pcall(external_call)
 end
 
-local find_available_interpreters = function() 
+local find_available_interpreters = function()
   local interpreters = { }
-  if execute("command -v lua") then
-    interpreters["Lua"] = "lua"
-  end
 
-  if execute("command -v luajit2") then
-    interpreters["LuaJIT 2.x"] = "luajit2"
-  end
+  for i = 1, #KNOWN_EXECUTABLES do
+    local command = KNOWN_EXECUTABLES[i]
+    local args = split_by_char(command, " ")
 
-  if execute("command -v luajit") then
-    interpreters["LuaJIT 1.x"] = "luajit -O"
+    if execute("command", "-v", args[1]) then
+      --Lua 5.0 and 5.1 prints version to STDERR instead of STDOUT
+      local res, name = execute(args[1], "-v", "2>&1")
+
+      if res then
+        --Preserve original version if it cannot be parsed
+        local ver = match(name, "(%w+ [%w%p]+)")
+        if ver then
+          name = ver
+        end
+
+
+        interpreters[#interpreters + 1] = 
+        {
+          name = name .. " (" .. command .. ")";
+          command = args;
+        }
+      end
+    end
   end
 
   return interpreters
@@ -75,7 +109,7 @@ do
     end
 
     for method, _ in ordered_pairs(benchmark.handlers) do
-      print("* " .. method)
+      io.write("* " .. method)
     end
 
     os.exit(0)
@@ -84,7 +118,9 @@ do
   --Execute benchmark for each interpreter in separate process
   local interpreters = find_available_interpreters()
   local results = { }
-  for name, cmd in pairs(interpreters) do
+  for i = 1, #interpreters do
+    local cmd = interpreters[i]
+
     local script = [[
       require "lua-nucleo"
       local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
@@ -114,12 +150,17 @@ do
       end
     ]]
 
-    local response = execute(cmd .. " -e'" .. script .. "'")
+    local args = cmd.command
+    args[#args + 1] = '-e'
+    args[#args + 1] = script
+
+    local ok, response = execute(unpack(args))
+
     local response_function = loadstring(response)
     if response_function then
-      results[name] = response_function()
+      results[cmd.name] = response_function()
     else
-      io.write("Cannot execute benchmark using " .. name .. ': ' .. response)
+      io.write("Cannot execute benchmark using " .. cmd.name .. ': ' .. response)
     end
   end
 
