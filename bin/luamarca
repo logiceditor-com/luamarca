@@ -16,6 +16,8 @@ local parse_arguments
 
 local tserialize = import 'lua-nucleo/tserialize.lua' { 'tserialize' }
 
+local ordered_pairs = import 'lua-nucleo/tdeepequals.lua' { 'ordered_pairs' }
+
 --------------------------------------------------------------------------------
 
 local format
@@ -72,7 +74,7 @@ do
       os.exit(0)
     end
 
-    for method, _ in pairs(benchmark.handlers) do
+    for method, _ in ordered_pairs(benchmark.handlers) do
       print("* " .. method)
     end
 
