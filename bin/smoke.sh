@@ -25,7 +25,7 @@ LUAC=luac
 
 SYNTAX="${LUAC} -p"
 GLOBALS="${LUAC} -o /dev/null -l"
-BENCH="${LUA} bench.lua"
+BENCH="luamarca --info"
 
 NUM_ITER=1
 GLOBALS_TO_CACHE=`${LUA} -e 'for k in pairs(_G) do print(k) end'`
