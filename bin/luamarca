@@ -1,5 +1,11 @@
 #!/usr/bin/env lua
 
+--------------------------------------------------------------------------------
+-- luamarca: benchmarking utillity
+-- This file is a part of luamarca library
+-- Copyright (c) luamarca authors (see file `COPYRIGHT` for the license)
+--------------------------------------------------------------------------------
+
 require "lua-nucleo"
 
 local parse_arguments
@@ -67,7 +73,7 @@ do
     end
 
     for method, _ in pairs(benchmark.handlers) do
-      print("* "..method)
+      print("* " .. method)
     end
 
     os.exit(0)
@@ -82,7 +88,7 @@ do
       local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
       local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
 
-      local filename = "]]..CONFIG[TOOL_NAME].benchmark_file..[["
+      local filename = "]] .. CONFIG[TOOL_NAME].benchmark_file .. [["
 
       local benchmark, err = load_benchmark(filename)
       if not benchmark then
@@ -97,7 +103,7 @@ do
     end
 
     script = script .. [[
-      local res, err = benchmark:execute(]]..CONFIG[TOOL_NAME].iterations..[[)
+      local res, err = benchmark:execute(]] .. CONFIG[TOOL_NAME].iterations .. [[)
 
       if res then
         print(tserialize(res))
@@ -106,7 +112,7 @@ do
       end
     ]]
 
-    local response = execute(cmd.." -e'"..script.."'")
+    local response = execute(cmd .. " -e'" .. script .. "'")
     local response_function = loadstring(response)
     if response_function then
       results[name] = response_function()
