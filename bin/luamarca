@@ -1,0 +1,106 @@
+#!/usr/bin/env lua
+
+require "lua-nucleo"
+
+local parse_arguments
+      = import 'luamarca/cli.lua'
+      {
+        'parse_arguments'
+      }
+
+local tserialize = import 'lua-nucleo/tserialize.lua' { 'tserialize' }
+
+--------------------------------------------------------------------------------
+
+local format
+      = import 'luamarca/formatter.lua'
+      {
+        'format'
+      }
+
+local load_benchmark
+      = import 'luamarca/benchmark.lua'
+      {
+        'load_benchmark'
+      }
+
+--------------------------------------------------------------------------------
+
+local TOOL_NAME = "luamarca"
+
+local CONFIG = parse_arguments(TOOL_NAME, ...)
+
+--------------------------------------------------------------------------------
+
+local execute = function(command)
+  local handle = io.popen(command)
+  local result = handle:read('*a')
+  handle:close()
+
+  return result
+end
+
+local find_available_interpreters = function() 
+  local interpreters = { }
+  if execute("command -v lua") then
+    interpreters["Lua"] = "lua"
+  end
+
+  if execute("command -v luajit2") then
+    interpreters["LuaJIT 2.x"] = "luajit2"
+  end
+
+  if execute("command -v luajit") then
+    interpreters["LuaJIT 1.x"] = "luajit -O"
+  end
+
+  return interpreters
+end
+
+do
+  if CONFIG[TOOL_NAME].info then
+    local benchmark = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
+
+    for method, _ in pairs(benchmark.handlers) do
+      print("* "..method)
+    end
+
+    os.exit(0)
+  end
+
+  --Execute benchmark for each interpreter in separate process
+  local interpreters = find_available_interpreters()
+  local results = { }
+  for name, cmd in pairs(interpreters) do
+    local script = [[
+      require "lua-nucleo"
+      local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
+      local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
+
+      local filename = "]]..CONFIG[TOOL_NAME].benchmark_file..[["
+
+      local benchmark = load_benchmark(filename)
+    ]]
+
+    local methods = CONFIG[TOOL_NAME].methods
+    if methods then
+      script = script .. 'benchmark.methods = "' .. CONFIG[TOOL_NAME].methods .. '"\n'
+    end
+
+    script = script .. [[
+      local res, err = benchmark:execute(]]..CONFIG[TOOL_NAME].iterations..[[)
+
+      if res then
+        print(tserialize(res))
+      else
+        print(err)
+      end
+    ]]
+
+    local response = execute(cmd.." -e'"..script.."'")
+    results[name] = loadstring(response)()
+  end
+
+  format(results, CONFIG[TOOL_NAME].output)
+end
+
