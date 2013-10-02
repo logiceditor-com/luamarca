@@ -59,7 +59,12 @@ end
 
 do
   if CONFIG[TOOL_NAME].info then
-    local benchmark = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
+    local benchmark, err = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
+
+    if not benchmark then
+      io.write(err)
+      os.exit(0)
+    end
 
     for method, _ in pairs(benchmark.handlers) do
       print("* "..method)
@@ -79,7 +84,11 @@ do
 
       local filename = "]]..CONFIG[TOOL_NAME].benchmark_file..[["
 
-      local benchmark = load_benchmark(filename)
+      local benchmark, err = load_benchmark(filename)
+      if not benchmark then
+        io.write(err)
+        os.exit(0)
+      end      
     ]]
 
     local methods = CONFIG[TOOL_NAME].methods
@@ -98,7 +107,12 @@ do
     ]]
 
     local response = execute(cmd.." -e'"..script.."'")
-    results[name] = loadstring(response)()
+    local response_function = loadstring(response)
+    if response_function then
+      results[name] = response_function()
+    else
+      io.write("Cannot execute benchmark using " .. name .. ': ' .. response)
+    end
   end
 
   format(results, CONFIG[TOOL_NAME].output)
