@@ -4,51 +4,17 @@
 -- Copyright (c) luamarca authors (see file `COPYRIGHT` for the license)
 --------------------------------------------------------------------------------
 
-local LOG_LEVEL,
-      wrap_file_sink,
-      make_common_logging_config
-      = import 'lua-nucleo/log.lua'
+local create_common_stdout_logging
+      = import 'lua-aplicado/common_logging.lua'
       {
-        'LOG_LEVEL',
-        'wrap_file_sink',
-        'make_common_logging_config'
+        'create_common_stdout_logging'
       }
 
+--------------------------------------------------------------------------------
 
-local create_common_logging_system,
-      get_current_logsystem_date_microsecond
-      = import 'lua-aplicado/log.lua' 
-      { 
-        'create_common_logging_system', 
-        'get_current_logsystem_date_microsecond' 
-      }
+create_common_stdout_logging()
 
-do
-  local LOG_LEVEL_CONFIG =
-  {
-    [LOG_LEVEL.ERROR] = true;
-    [LOG_LEVEL.LOG]   = true;
-    [LOG_LEVEL.DEBUG] = false;
-    [LOG_LEVEL.SPAM]  = false;
-  }
-
-  local LOG_MODULE_CONFIG =
-  {
-    -- Empty; everything is enabled by default.
-  }
-
-  local logging_system_id = ""
-
-  create_common_logging_system(
-      logging_system_id,
-      wrap_file_sink(io.stdout),
-      make_common_logging_config(
-          LOG_LEVEL_CONFIG,
-          LOG_MODULE_CONFIG
-        ),
-      get_current_logsystem_date_microsecond
-    )
-end
+--------------------------------------------------------------------------------
 
 local load_tools_cli_data_schema,
       load_tools_cli_config,
