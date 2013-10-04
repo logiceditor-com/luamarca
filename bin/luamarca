@@ -166,4 +166,3 @@ do
 
   format(results, CONFIG[TOOL_NAME].output)
 end
-
