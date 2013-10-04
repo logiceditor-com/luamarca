@@ -104,12 +104,12 @@ do
     local benchmark, err = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
 
     if not benchmark then
-      io.write(err)
+      io.stderr:write(err, "\n")
       os.exit(0)
     end
 
     for method, _ in ordered_pairs(benchmark.handlers) do
-      io.write("* " .. method)
+      io.write("* ", method, "\n")
     end
 
     os.exit(0)
@@ -130,7 +130,7 @@ do
 
       local benchmark, err = load_benchmark(filename)
       if not benchmark then
-        io.write(err)
+        io.stderr:write(err, "\n")
         os.exit(0)
       end      
     ]]
@@ -160,7 +160,7 @@ do
     if response_function then
       results[cmd.name] = response_function()
     else
-      io.write("Cannot execute benchmark using " .. cmd.name .. ': ' .. response)
+      io.stderr:write("Cannot execute benchmark using ", cmd.name, ': ', response, "\n")
     end
   end
 
