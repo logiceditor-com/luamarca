@@ -156,7 +156,7 @@ do
 
     local ok, response = execute(unpack(args))
 
-    local response_function = loadstring(response)
+    local response_function = loadstring(response, "=" .. cmd.name)
     if response_function then
       results[cmd.name] = response_function()
     else
