@@ -46,10 +46,6 @@ local load_benchmark
 
 --------------------------------------------------------------------------------
 
-local match = string.match
-
---------------------------------------------------------------------------------
-
 local TOOL_NAME = "luamarca"
 
 local CONFIG = parse_arguments(TOOL_NAME, ...)
@@ -71,7 +67,7 @@ local find_available_interpreters = function()
 
       if res then
         -- Preserve original version if it cannot be parsed
-        local ver = match(name, "(%w+ [%w%p]+)")
+        local ver = name:match("(%w+ [%w%p]+)")
         if ver then
           name = ver
         end
