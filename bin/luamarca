@@ -14,9 +14,17 @@ local parse_arguments
         'parse_arguments'
       }
 
-local tserialize = import 'lua-nucleo/tserialize.lua' { 'tserialize' }
+local tserialize
+      = import 'lua-nucleo/tserialize.lua'
+      {
+        'tserialize'
+      }
 
-local ordered_pairs = import 'lua-nucleo/tdeepequals.lua' { 'ordered_pairs' }
+local ordered_pairs
+      = import 'lua-nucleo/tdeepequals.lua'
+      {
+        'ordered_pairs'
+      }
 
 local split_by_char
       = import 'lua-nucleo/string.lua'
@@ -26,8 +34,8 @@ local split_by_char
 
 local shell_read
       = import 'lua-aplicado/shell.lua'
-      { 
-        'shell_read' 
+      {
+        'shell_read'
       }
 
 --------------------------------------------------------------------------------
@@ -72,7 +80,7 @@ local find_available_interpreters = function()
           name = ver
         end
 
-        interpreters[#interpreters + 1] = 
+        interpreters[#interpreters + 1] =
         {
           name = name .. " (" .. command .. ")";
           command = args;
@@ -117,12 +125,14 @@ do
       if not benchmark then
         io.stderr:write(err, "\n")
         os.exit(0)
-      end      
+      end
     ]]
 
     local methods = CONFIG[TOOL_NAME].methods
     if methods then
-      script = script .. 'benchmark.methods = "' .. CONFIG[TOOL_NAME].methods .. '"\n'
+      script = script
+            .. 'benchmark.methods = "'
+            .. CONFIG[TOOL_NAME].methods .. '"\n'
     end
 
     script = script .. [[
@@ -145,7 +155,13 @@ do
     if response_function then
       results[cmd.name] = response_function()
     else
-      io.stderr:write("Cannot execute benchmark using ", cmd.name, ': ', response, "\n")
+      io.stderr:write(
+          "Cannot execute benchmark using ",
+          cmd.name,
+          ': ',
+          response,
+          "\n"
+        )
     end
   end
 

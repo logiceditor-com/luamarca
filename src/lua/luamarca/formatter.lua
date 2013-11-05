@@ -24,12 +24,12 @@ local print_bargraph = function(data)
   for method, method_data in pairs(data) do
     io.write("# begin method ", method, "\n")
 
-    local groups = setmetatable({ }, { 
-        __index = function(t, k) 
-            local v = { } 
-            rawset(t, k, v) 
-            return v 
-          end 
+    local groups = setmetatable({ }, {
+        __index = function(t, k)
+            local v = { }
+            rawset(t, k, v)
+            return v
+          end
         }
       )
 
@@ -107,7 +107,10 @@ local print_table = function(data)
     if #method_data == 0 then
       print("-- empty --")
     else
-      table.sort(method_data, function(lhs, rhs) return lhs.timing < rhs.timing end)
+      table.sort(
+          method_data,
+          function(lhs, rhs) return lhs.timing < rhs.timing end
+        )
 
       local fastest = method_data[1].timing
 
@@ -128,7 +131,8 @@ local print_table = function(data)
 end
 
 --------------------------------------------------------------------------------
-local format = function(data, mode) 
+
+local format = function(data, mode)
   mode = mode or 'table'
 
   if mode == "raw" then
@@ -142,6 +146,7 @@ local format = function(data, mode)
   end
 end
 
-return {
+return
+{
   format = format;
 }

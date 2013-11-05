@@ -37,14 +37,16 @@ local create_config_schema = function()
       cfg:node "luamarca"
       {
         cfg:existing_path "benchmark_file";
-        cfg:enum_value "output" { 
-            default = "table";           
-            values_set = {
-                ["table"] = "table";
-                ["raw"] = "raw";
-                ["bargraph"] = "bargraph";
-              };
+        cfg:enum_value "output"
+        {
+          default = "table";
+          values_set =
+          {
+            ["table"] = "table";
+            ["raw"] = "raw";
+            ["bargraph"] = "bargraph";
           };
+        };
         cfg:string "methods" { default = '' };
         cfg:integer "iterations" { default = 1e6 };
         cfg:boolean "info";
@@ -71,12 +73,12 @@ Examples:
 Options:
 
     --output            Benchmark results format. Possible values:
-                        'raw' - raw data 
+                        'raw' - raw data
                         'table' - human-readable table
                         'barchart' - data file for gnuplot
                         Default: 'table
     --methods           Comma-separated list of methods to be benchmarked
-    --info              Print list of available methods in the suite 
+    --info              Print list of available methods in the suite
                         without running benchmarks
     --iterations        Number of iterations
                         Default: 1,000,000
@@ -128,6 +130,7 @@ end
 
 --------------------------------------------------------------------------------
 
-return {
+return
+{
   parse_arguments = parse_arguments;
 }
