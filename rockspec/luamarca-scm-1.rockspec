@@ -35,7 +35,6 @@ build =
 
     lua =
     {
-      ["luamarca.benchmark"] = "src/lua/luamarca/benchmark.lua";
       ["luamarca.formatter"] = "src/lua/luamarca/formatter.lua";
     }
   }

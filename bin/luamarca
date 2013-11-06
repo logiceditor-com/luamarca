@@ -74,12 +74,6 @@ local format
         'format'
       }
 
-local load_benchmark
-      = import 'luamarca/benchmark.lua'
-      {
-        'load_benchmark'
-      }
-
 --------------------------------------------------------------------------------
 
 local TOOL_NAME = "luamarca"
