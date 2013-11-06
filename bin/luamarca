@@ -8,15 +8,23 @@
 
 require "lua-nucleo"
 
-local parse_arguments
-      = import 'luamarca/cli.lua'
+local create_common_stdout_logging
+      = import 'lua-aplicado/common_logging.lua'
       {
-        'parse_arguments'
+        'create_common_stdout_logging'
       }
 
-local freeform_table_value
+create_common_stdout_logging()
+
+local load_tools_cli_data_schema,
+      load_tools_cli_config,
+      print_tools_cli_config_usage,
+      freeform_table_value
       = import 'lua-aplicado/dsl/tools_cli_config.lua'
       {
+        'load_tools_cli_data_schema',
+        'load_tools_cli_config',
+        'print_tools_cli_config_usage',
         'freeform_table_value'
       }
 
@@ -46,8 +54,6 @@ local shell_read
         'shell_read'
       }
 
---------------------------------------------------------------------------------
-
 local format
       = import 'luamarca/formatter.lua'
       {
@@ -64,7 +70,120 @@ local load_benchmark
 
 local TOOL_NAME = "luamarca"
 
-local CONFIG = parse_arguments(TOOL_NAME, ...)
+local TOOL_HELP = [[
+
+luamarca: benchmarks runner
+
+Usage:
+
+    luamarca [benchmark_file] [options]
+
+Examples:
+
+    luamarca bench/benchmark.lua
+    luamarca bench/benchmark.lua --methods=foo
+    luamarca bench/benchmark.lua --interpreters='luajit2 -jv:lua5.1'
+    luamarca bench/benchmark.lua --iterations=1e7 --output=barchart
+
+Options:
+
+    --output            Benchmark results format. Possible values:
+                        'raw' - raw data
+                        'table' - human-readable table
+                        'barchart' - data file for gnuplot
+                        Default: 'table
+    --methods           Comma-separated list of methods to be benchmarked
+    --info              Print list of available methods in the suite
+                        without running benchmarks
+    --interpreters      Colon-separated list of interpreters to be benchmarked
+                        Default: 'lua5.1:lua5.2:luajit -O:luajit2'
+    --iterations        Number of iterations
+                        Default: 1,000,000
+]]
+
+--------------------------------------------------------------------------------
+
+local CONFIG
+do
+  local CONFIG_SCHEMA = load_tools_cli_data_schema(function()
+    cfg:root
+    {
+      cfg:node "luamarca"
+      {
+        cfg:existing_path "benchmark_file";
+        cfg:enum_value "output"
+        {
+          default = "table";
+          values_set =
+          {
+            ["table"] = "table";
+            ["raw"] = "raw";
+            ["bargraph"] = "bargraph";
+          };
+        };
+        cfg:string "methods" { default = '' };
+        -- TODO: fixup non_empty_ilist with defaults
+        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        cfg:non_empty_ilist "interpreters"
+        {
+          --cfg:string "interpreter";
+          --[[default =
+          {
+            "lua5.1";
+            "lua5.2";
+            "luajit -O";
+            "luajit2";
+          };]]
+        };
+        cfg:integer "iterations" { default = 1e6 };
+        cfg:boolean "info";
+      };
+    }
+  end)
+
+  local err
+  CONFIG, err = load_tools_cli_config(
+      function(args) -- Parse actions
+        local param = { }
+
+        param.benchmark_file = args[1]
+        param.output = args["--output"]
+        param.methods = args["--methods"]
+        param.info = not not args["--info"]
+
+        if args["--iterations"] then
+          param.iterations = tonumber(args["--iterations"])
+        end
+
+        -- TODO: default should come from schema
+        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        param.interpreters = args["--interpreters"]
+            and split_by_char(args["--interpreters"], ":")
+            or { "lua5.1", "lua5.2", "luajit -O", "luajit2" }
+
+        return
+        {
+          PROJECT_PATH = args["--root"] or "./";
+          [TOOL_NAME] = param;
+        }
+      end,
+      TOOL_HELP,
+      CONFIG_SCHEMA,
+      nil, -- Specify primary config file with --base-config cli option
+      nil, -- No secondary config file
+      ...
+    )
+
+  if CONFIG == nil then
+    print_tools_cli_config_usage(TOOL_HELP, CONFIG_SCHEMA)
+
+    io.stderr:write("Error in tool configuration:\n", err, "\n\n")
+    io.stderr:flush()
+
+    os.exit(1)
+  end
+
+end
 
 --------------------------------------------------------------------------------
 

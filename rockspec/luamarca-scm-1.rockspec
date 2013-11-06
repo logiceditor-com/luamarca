@@ -1,13 +1,13 @@
 package = "luamarca"
 version = "scm-1"
 
-source = 
+source =
 {
   url = "git://github.com/agladysh/luamarca.git";
   branch = "master";
 }
 
-description = 
+description =
 {
   summary = "Lua benchmarking tool with a set of silly benchmarks";
   homepage = "http://github.com/agladysh/luamarca";
@@ -15,7 +15,7 @@ description =
   maintainer = "LogicEditor Team <team@logiceditor.com>";
 }
 
-dependencies = 
+dependencies =
 {
   "lua >= 5.1";
   "luasocket >= 2.0.2";
@@ -23,21 +23,20 @@ dependencies =
   "lua-aplicado >= 1.0.3";
 }
 
-build = 
+build =
 {
   type = "none";
-  install = 
+  install =
   {
-    bin = 
+    bin =
     {
       ["luamarca"] = "bin/luamarca";
     },
-    
-    lua = 
+
+    lua =
     {
       ["luamarca.benchmark"] = "src/lua/luamarca/benchmark.lua";
       ["luamarca.formatter"] = "src/lua/luamarca/formatter.lua";
-      ["luamarca.cli"] = "src/lua/luamarca/cli.lua";
     }
   }
 }
