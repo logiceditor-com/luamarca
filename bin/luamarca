@@ -245,8 +245,9 @@ local find_available_interpreters = function()
         end
 
         -- NB: do not allow multiple use of the same interpreter
-        -- FIXME: still, --interpreters="luajit:luajit -jv" should result in
-        --        two distinct interpreters
+        -- TODO: still, --interpreters="luajit:luajit -jv" should result in
+        --       two distinct interpreters
+        --       https://redmine-tmp.iphonestudio.ru/issues/3479#note-3
         if not interpreters[ver] then
           interpreters[ver] = true
           interpreters[#interpreters + 1] =
@@ -266,70 +267,102 @@ end
 -- template runner script, ${var} to be replaced with config values later
 --
 local script = [[
-require "lua-nucleo"
-local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
-local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
+require "socket"
+local gettime = socket.gettime
 
-local benchmark, err = load_benchmark("${benchmark_file}")
+-- load benchmark file
+local benchmark, err = loadfile("${benchmark_file}")
 assert(benchmark, err)
 
-benchmark.methods = ""
+-- obtain list of cases
+local ok, cases = pcall(benchmark)
+assert(ok)
 
-local res, err = benchmark:execute(${iterations})
-if res then
-  -- TODO: replace tserialize
-  --       https://redmine-tmp.iphonestudio.ru/issues/3483
-  io.write(tserialize(res), "\n")
-else
-  io.stderr:write(err, "\n")
+local handler = assert(
+    cases["${case}"],
+    "Benchmark does not export '${case}' function via return table"
+  )
+
+-- measure
+local time = gettime()
+for i = 1, ${iterations} do
+  handler()
 end
+time = gettime() - time
+
+-- report elapsed time
+io.write(time, "\n")
 ]]
 
 do
-  -- Print benchmark methods and exit, if info cmdline option specified
+  -- config
+  local config =
+  {
+    cases = freeform_table_value(CONFIG[TOOL_NAME].cases);
+    benchmark_file = CONFIG[TOOL_NAME].benchmark_file;
+    iterations = CONFIG[TOOL_NAME].iterations;
+  }
+
+  -- print benchmark cases and exit, if info cmdline option specified
+  -- NB: cases taken from config, list may be overriden with --cases=LIST option
   if CONFIG[TOOL_NAME].info then
-    local benchmark, err = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
-
-    if not benchmark then
-      io.stderr:write(err, "\n")
-      os.exit(0)
+    table.sort(config.cases)
+    for i = 1, #config.cases do
+      io.write("* ", config.cases[i], "\n")
     end
-
-    for method, _ in ordered_pairs(benchmark.handlers) do
-      io.write("* ", method, "\n")
-    end
-
     os.exit(0)
   end
 
-  -- Compose runner script
-  script = fill_curly_placeholders(script, CONFIG[TOOL_NAME])
-
-  -- Execute benchmark for each interpreter in separate process
-  local interpreters = find_available_interpreters()
+  -- timing results for interpreters
   local results = { }
+
+  -- execute each case of benchmark in each interpreter in separate processes
+  local interpreters = find_available_interpreters()
   for i = 1, #interpreters do
     local cmd = interpreters[i]
 
-    local args = cmd.command
+    local args = tclone(cmd.command)
     args[#args + 1] = '-e'
+    -- NB: will be replaced in inner loop
     args[#args + 1] = script
 
-    local ok, response = pcall(shell_read, unpack(args))
+    -- timing results for cases
+    local case_results = { }
+    results[cmd.name] = case_results
 
-    local response_function = loadstring(response, "=" .. cmd.name)
-    if response_function then
-      results[cmd.name] = response_function()
-    else
-      io.stderr:write(
-          "Cannot execute benchmark using ",
-          cmd.name,
-          ': ',
-          response,
-          "\n"
-        )
-    end
-  end
+    -- for each case
+    for j = 1, #config.cases do
+      config.case = config.cases[j]
+      -- override script
+      args[#args] = fill_curly_placeholders(script, config)
+      -- run script
+      local ok, response = pcall(shell_read, unpack(args))
+      -- if run ok
+      if ok then
+        -- collect timing
+        -- NB: format to conform formatter.lua
+        case_results[#case_results + 1] =
+        {
+          iterations = config.iterations;
+          name = config.case;
+          timing =  tonumber(response);
+        }
+      -- failed to run the case
+      else
+        -- report error
+        io.stderr:write(
+            "Cannot execute benchmark using ",
+            cmd.name,
+            ': ',
+            response,
+            "\n"
+          )
+      end
 
+    end -- cases
+
+  end -- interpreters
+
+  -- finally print results
   format(results, CONFIG[TOOL_NAME].output)
 end
