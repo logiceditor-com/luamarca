@@ -201,11 +201,17 @@ local find_available_interpreters = function()
           name = ver
         end
 
-        interpreters[#interpreters + 1] =
-        {
-          name = name .. " (" .. command .. ")";
-          command = args;
-        }
+        -- NB: do not allow multiple use of the same interpreter
+        -- FIXME: still, --interpreters="luajit:luajit -jv" should result in
+        --        two distinct interpreters
+        if not interpreters[ver] then
+          interpreters[ver] = true
+          interpreters[#interpreters + 1] =
+          {
+            name = name .. " (" .. command .. ")";
+            command = args;
+          }
+        end
       end
     end
   end
