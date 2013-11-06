@@ -14,6 +14,12 @@ local parse_arguments
         'parse_arguments'
       }
 
+local freeform_table_value
+      = import 'lua-aplicado/dsl/tools_cli_config.lua'
+      {
+        'freeform_table_value'
+      }
+
 local tserialize
       = import 'lua-nucleo/tserialize.lua'
       {
@@ -60,15 +66,15 @@ local TOOL_NAME = "luamarca"
 
 local CONFIG = parse_arguments(TOOL_NAME, ...)
 
-local KNOWN_EXECUTABLES = { "lua5.1", "lua5.2", "luajit -O", "luajit2" }
-
 --------------------------------------------------------------------------------
 
 local find_available_interpreters = function()
   local interpreters = { }
 
-  for i = 1, #KNOWN_EXECUTABLES do
-    local command = KNOWN_EXECUTABLES[i]
+  local ints = freeform_table_value(CONFIG[TOOL_NAME].interpreters)
+
+  for i = 1, #ints do
+    local command = ints[i]
     local args = split_by_char(command, " ")
 
     if pcall(shell_read, "command", "-v", args[1]) then
@@ -118,6 +124,7 @@ end
 ]]
 
 do
+  -- Print benchmark methods and exit, if info cmdline option specified
   if CONFIG[TOOL_NAME].info then
     local benchmark, err = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
 

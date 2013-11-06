@@ -28,6 +28,14 @@ local load_tools_cli_data_schema,
         'freeform_table_value'
       }
 
+-- TODO: should be gone once the issue is fixed
+--       https://redmine-tmp.iphonestudio.ru/issues/3470
+local split_by_char
+      = import 'lua-nucleo/string.lua'
+      {
+        'split_by_char'
+      }
+
 --------------------------------------------------------------------------------
 
 local create_config_schema = function()
@@ -48,6 +56,19 @@ local create_config_schema = function()
           };
         };
         cfg:string "methods" { default = '' };
+        -- TODO: fixup non_empty_ilist with defaults
+        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        cfg:non_empty_ilist "interpreters"
+        {
+          --cfg:string "interpreter";
+          --[[default =
+          {
+            "lua5.1";
+            "lua5.2";
+            "luajit -O";
+            "luajit2";
+          };]]
+        };
         cfg:integer "iterations" { default = 1e6 };
         cfg:boolean "info";
       };
@@ -68,6 +89,7 @@ Examples:
 
     luamarca bench/benchmark.lua
     luamarca bench/benchmark.lua --methods=foo
+    luamarca bench/benchmark.lua --interpreters='luajit2 -jv:lua5.1'
     luamarca bench/benchmark.lua --iterations=1e7 --output=barchart
 
 Options:
@@ -80,6 +102,8 @@ Options:
     --methods           Comma-separated list of methods to be benchmarked
     --info              Print list of available methods in the suite
                         without running benchmarks
+    --interpreters      Colon-separated list of interpreters to be benchmarked
+                        Default: 'lua5.1:lua5.2:luajit -O:luajit2'
     --iterations        Number of iterations
                         Default: 1,000,000
 ]]
@@ -89,8 +113,7 @@ local CONFIG_SCHEMA = create_config_schema()
 --------------------------------------------------------------------------------
 
 local parse_arguments = function(tool_name, ...)
-  local config, err
-  config, err = load_tools_cli_config(
+  local config, err = load_tools_cli_config(
       function(args) -- Parse actions
         local param = { }
 
@@ -102,6 +125,12 @@ local parse_arguments = function(tool_name, ...)
         if args["--iterations"] then
           param.iterations = tonumber(args["--iterations"])
         end
+
+        -- TODO: default should come from schema
+        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        param.interpreters = args["--interpreters"]
+            and split_by_char(args["--interpreters"], ":")
+            or { "lua5.1", "lua5.2", "luajit -O", "luajit2" }
 
         return
         {
