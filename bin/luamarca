@@ -28,6 +28,20 @@ local load_tools_cli_data_schema,
         'freeform_table_value'
       }
 
+local is_table
+      = import 'lua-nucleo/type.lua'
+      {
+        'is_table'
+      }
+
+local tkeys,
+      tclone
+      = import 'lua-nucleo/table-utils.lua'
+      {
+        'tkeys',
+        'tclone'
+      }
+
 local tserialize
       = import 'lua-nucleo/tserialize.lua'
       {
@@ -81,36 +95,57 @@ Usage:
 Examples:
 
     luamarca bench/benchmark.lua
-    luamarca bench/benchmark.lua --methods=foo
+    luamarca bench/benchmark.lua --cases=foo
     luamarca bench/benchmark.lua --interpreters='luajit2 -jv:lua5.1'
     luamarca bench/benchmark.lua --iterations=1e7 --output=barchart
 
 Options:
 
-    --output            Benchmark results format. Possible values:
-                        'raw' - raw data
-                        'table' - human-readable table
-                        'barchart' - data file for gnuplot
-                        Default: 'table
-    --methods           Comma-separated list of methods to be benchmarked
-    --info              Print list of available methods in the suite
+    --cases             Comma-separated list of cases to be benchmarked
+    --info              Print list of available cases in the suite
                         without running benchmarks
     --interpreters      Colon-separated list of interpreters to be benchmarked
                         Default: 'lua:lua5.1:lua5.2:luajit2:luajit -O'
     --iterations        Number of iterations
                         Default: 1,000,000
+    --output            Benchmark results format. Possible values:
+                        'raw' - raw data
+                        'table' - human-readable table
+                        'barchart' - data file for gnuplot
+                        Default: 'table
 ]]
 
 --------------------------------------------------------------------------------
 
 local CONFIG
 do
+
   local CONFIG_SCHEMA = load_tools_cli_data_schema(function()
     cfg:root
     {
       cfg:node "luamarca"
       {
         cfg:existing_path "benchmark_file";
+        -- TODO: fix config_dsl
+        --       https://redmine-tmp.iphonestudio.ru/issues/3487
+        --[[
+        cfg:ilist "cases"
+        {
+          value = cfg:string "case";
+        };
+        ]]
+        cfg:boolean "info";
+        -- TODO: fix config_dsl
+        --       https://redmine-tmp.iphonestudio.ru/issues/3487
+        --[[
+        cfg:ilist "foo" { value = cfg:string "value"; default = { ... } }
+        cfg:non_empty_ilist "interpreters"
+        {
+          value = cfg:string "interpreter";
+          default = { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" };
+        };
+        ]]
+        cfg:integer "iterations" { default = 1e6 };
         cfg:enum_value "output"
         {
           default = "table";
@@ -121,16 +156,6 @@ do
             ["bargraph"] = "bargraph";
           };
         };
-        cfg:string "methods" { default = '' };
-        -- TODO: fixup non_empty_ilist with defaults
-        --       https://redmine-tmp.iphonestudio.ru/issues/3470
-        cfg:non_empty_ilist "interpreters"
-        {
-          --cfg:string "interpreter";
-          --default = { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" };
-        };
-        cfg:integer "iterations" { default = 1e6 };
-        cfg:boolean "info";
       };
     }
   end)
@@ -154,6 +179,24 @@ do
         param.interpreters = args["--interpreters"]
             and split_by_char(args["--interpreters"], ":")
             or { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" }
+
+        -- load benchmark to obtain list of cases
+        -- TODO: allow benchmarks to specify interpreters they are meant for
+        --       https://redmine-tmp.iphonestudio.ru/issues/3399#note-2
+        --       E.g. FFI should not be benchmarked with plain Lua
+        local benchmark, err = loadfile(param.benchmark_file)
+        assert(benchmark, err)
+        local ok, cases = pcall(benchmark)
+        assert(
+            ok and is_table(cases),
+            "Benchmark must export table of case functions"
+          )
+
+        -- TODO: fixup config_dsl
+        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        param.cases = args["--cases"]
+            and split_by_char(args["--cases"], ",")
+            or tkeys(cases)
 
         return
         {
@@ -230,7 +273,7 @@ local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
 local benchmark, err = load_benchmark("${benchmark_file}")
 assert(benchmark, err)
 
-benchmark.methods = "${methods}"
+benchmark.methods = ""
 
 local res, err = benchmark:execute(${iterations})
 if res then
