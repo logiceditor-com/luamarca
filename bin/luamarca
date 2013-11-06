@@ -96,7 +96,7 @@ Options:
     --info              Print list of available methods in the suite
                         without running benchmarks
     --interpreters      Colon-separated list of interpreters to be benchmarked
-                        Default: 'lua5.1:lua5.2:luajit -O:luajit2'
+                        Default: 'lua:lua5.1:lua5.2:luajit2:luajit -O'
     --iterations        Number of iterations
                         Default: 1,000,000
 ]]
@@ -127,13 +127,7 @@ do
         cfg:non_empty_ilist "interpreters"
         {
           --cfg:string "interpreter";
-          --[[default =
-          {
-            "lua5.1";
-            "lua5.2";
-            "luajit -O";
-            "luajit2";
-          };]]
+          --default = { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" };
         };
         cfg:integer "iterations" { default = 1e6 };
         cfg:boolean "info";
@@ -159,7 +153,7 @@ do
         --       https://redmine-tmp.iphonestudio.ru/issues/3470
         param.interpreters = args["--interpreters"]
             and split_by_char(args["--interpreters"], ":")
-            or { "lua5.1", "lua5.2", "luajit -O", "luajit2" }
+            or { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" }
 
         return
         {
