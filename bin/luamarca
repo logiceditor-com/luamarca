@@ -42,18 +42,6 @@ local tkeys,
         'tclone'
       }
 
-local tserialize
-      = import 'lua-nucleo/tserialize.lua'
-      {
-        'tserialize'
-      }
-
-local ordered_pairs
-      = import 'lua-nucleo/tdeepequals.lua'
-      {
-        'ordered_pairs'
-      }
-
 local fill_curly_placeholders,
       split_by_char
       = import 'lua-nucleo/string.lua'
