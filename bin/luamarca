@@ -26,9 +26,11 @@ local ordered_pairs
         'ordered_pairs'
       }
 
-local split_by_char
+local fill_curly_placeholders,
+      split_by_char
       = import 'lua-nucleo/string.lua'
       {
+        'fill_curly_placeholders',
         'split_by_char'
       }
 
@@ -92,6 +94,29 @@ local find_available_interpreters = function()
   return interpreters
 end
 
+--
+-- template runner script, ${var} to be replaced with config values later
+--
+local script = [[
+require "lua-nucleo"
+local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
+local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
+
+local benchmark, err = load_benchmark("${benchmark_file}")
+assert(benchmark, err)
+
+benchmark.methods = "${methods}"
+
+local res, err = benchmark:execute(${iterations})
+if res then
+  -- TODO: replace tserialize
+  --       https://redmine-tmp.iphonestudio.ru/issues/3483
+  io.write(tserialize(res), "\n")
+else
+  io.stderr:write(err, "\n")
+end
+]]
+
 do
   if CONFIG[TOOL_NAME].info then
     local benchmark, err = load_benchmark(CONFIG[TOOL_NAME].benchmark_file)
@@ -108,42 +133,14 @@ do
     os.exit(0)
   end
 
+  -- Compose runner script
+  script = fill_curly_placeholders(script, CONFIG[TOOL_NAME])
+
   -- Execute benchmark for each interpreter in separate process
   local interpreters = find_available_interpreters()
   local results = { }
   for i = 1, #interpreters do
     local cmd = interpreters[i]
-
-    local script = [[
-      require "lua-nucleo"
-      local tserialize = import "lua-nucleo/tserialize.lua" { "tserialize" }
-      local load_benchmark = import "luamarca/benchmark.lua" { "load_benchmark" }
-
-      local filename = "]] .. CONFIG[TOOL_NAME].benchmark_file .. [["
-
-      local benchmark, err = load_benchmark(filename)
-      if not benchmark then
-        io.stderr:write(err, "\n")
-        os.exit(0)
-      end
-    ]]
-
-    local methods = CONFIG[TOOL_NAME].methods
-    if methods then
-      script = script
-            .. 'benchmark.methods = "'
-            .. CONFIG[TOOL_NAME].methods .. '"\n'
-    end
-
-    script = script .. [[
-      local res, err = benchmark:execute(]] .. CONFIG[TOOL_NAME].iterations .. [[)
-
-      if res then
-        print(tserialize(res))
-      else
-        print(err)
-      end
-    ]]
 
     local args = cmd.command
     args[#args + 1] = '-e'
