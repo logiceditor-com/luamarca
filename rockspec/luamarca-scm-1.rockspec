@@ -21,6 +21,7 @@ dependencies =
   "luasocket >= 2.0.2";
   "lua-nucleo >= 0.0.7";
   "lua-aplicado >= 1.0.3";
+  "le-tools.pk-lua-interpreter >= 1.0.3";
 }
 
 build =

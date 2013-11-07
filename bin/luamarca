@@ -1,4 +1,7 @@
-#!/usr/bin/env lua5.1
+#!/usr/bin/env pk-lua-interpreter
+-- TODO: should work with Lua 5.1 alone
+--       https://redmine-tmp.iphonestudio.ru/issues/3495
+--       https://redmine-tmp.iphonestudio.ru/issues/3399
 
 --------------------------------------------------------------------------------
 -- luamarca: benchmarking utillity
