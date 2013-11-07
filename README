@@ -18,11 +18,15 @@ Install rock:
 WARNING: depends on
          https://github.com/lua-nucleo/lua-nucleo
          https://github.com/lua-aplicado/lua-aplicado
+         http://w3.impa.br/~diego/software/luasocket
          https://github.com/logiceditor-com/le-tools
 
 Example:
 
-    luamarca bench/arguments.lua 2e6
+    luamarca bench/arguments.lua --iterations=2e6
+    luamarca bench/benchmark.lua --cases=foo
+    luamarca bench/benchmark.lua --interpreters='luajit2 -jv:lua5.1'
+    luamarca bench/benchmark.lua --output=barchart
 
 NOTE: Always run smoke check before submitting new benchmarks:
 
