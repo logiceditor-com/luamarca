@@ -1,7 +1,6 @@
 #!/usr/bin/env pk-lua-interpreter
 -- TODO: should work with Lua 5.1 alone
---       https://redmine-tmp.iphonestudio.ru/issues/3495
---       https://redmine-tmp.iphonestudio.ru/issues/3399
+--       https://github.com/logiceditor-com/luamarca/issues/1
 
 --------------------------------------------------------------------------------
 -- luamarca: benchmarking utillity
@@ -112,7 +111,7 @@ do
       {
         cfg:existing_path "benchmark_file";
         -- TODO: fix config_dsl
-        --       https://redmine-tmp.iphonestudio.ru/issues/3487
+        --       https://github.com/lua-aplicado/lua-aplicado/issues/37
         --[[
         cfg:ilist "cases"
         {
@@ -121,7 +120,7 @@ do
         ]]
         cfg:boolean "info";
         -- TODO: fix config_dsl
-        --       https://redmine-tmp.iphonestudio.ru/issues/3487
+        --       https://github.com/lua-aplicado/lua-aplicado/issues/37
         --[[
         cfg:ilist "foo" { value = cfg:string "value"; default = { ... } }
         cfg:non_empty_ilist "interpreters"
@@ -160,14 +159,14 @@ do
         end
 
         -- TODO: default should come from schema
-        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        --       https://github.com/lua-aplicado/lua-aplicado/issues/38
         param.interpreters = args["--interpreters"]
             and split_by_char(args["--interpreters"], ":")
             or { "lua", "lua5.1", "lua5.2", "luajit2", "luajit -O" }
 
         -- load benchmark to obtain list of cases
         -- TODO: allow benchmarks to specify interpreters they are meant for
-        --       https://redmine-tmp.iphonestudio.ru/issues/3399#note-2
+        --       https://github.com/logiceditor-com/luamarca/issues/3
         --       E.g. FFI should not be benchmarked with plain Lua
         local benchmark, err = loadfile(param.benchmark_file)
         assert(benchmark, err)
@@ -178,7 +177,7 @@ do
           )
 
         -- TODO: fixup config_dsl
-        --       https://redmine-tmp.iphonestudio.ru/issues/3470
+        --       https://github.com/lua-aplicado/lua-aplicado/issues/38
         param.cases = args["--cases"]
             and split_by_char(args["--cases"], ",")
             or tkeys(cases)
@@ -232,7 +231,7 @@ local find_available_interpreters = function()
         -- NB: do not allow multiple use of the same interpreter
         -- TODO: still, --interpreters="luajit:luajit -jv" should result in
         --       two distinct interpreters
-        --       https://redmine-tmp.iphonestudio.ru/issues/3479#note-3
+        --       https://github.com/logiceditor-com/luamarca/issues/2
         if not interpreters[ver] then
           interpreters[ver] = true
           interpreters[#interpreters + 1] =
