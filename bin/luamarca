@@ -1,4 +1,4 @@
-#!/usr/bin/env pk-lua-interpreter
+#!/usr/bin/env le-lua-interpreter
 -- TODO: should work with Lua 5.1 alone
 --       https://github.com/logiceditor-com/luamarca/issues/1
 
