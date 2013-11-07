@@ -252,6 +252,7 @@ end
 --
 local script = [[
 require "socket"
+require "lua-nucleo"
 local gettime = socket.gettime
 
 -- load benchmark file
@@ -260,7 +261,7 @@ assert(benchmark, err)
 
 -- obtain list of cases
 local ok, cases = pcall(benchmark)
-assert(ok)
+assert(ok, cases)
 
 local handler = assert(
     cases["${case}"],
