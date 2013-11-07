@@ -11,11 +11,22 @@ More appropriate description would be added later.
 WARNING: Current benchmark system code is weird. You've been warned.
          Patches are welcome. ;-)
 
-$ ./run_benchmark.sh bench/arguments.lua 2e6
+Install rock:
+
+    ./make.sh
+
+WARNING: depends on
+         https://github.com/lua-nucleo/lua-nucleo
+         https://github.com/lua-aplicado/lua-aplicado
+         https://github.com/logiceditor-com/le-tools
+
+Example:
+
+    luamarca bench/arguments.lua 2e6
 
 NOTE: Always run smoke check before submitting new benchmarks:
 
-$ etc/smoke.sh bench/*.lua
+    bin/smoke.sh bench/*.lua
 
 Benchmark file standard:
 ------------------------
