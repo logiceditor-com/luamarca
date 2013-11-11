@@ -260,7 +260,7 @@ local benchmark, err = loadfile("${benchmark_file}")
 assert(benchmark, err)
 
 -- obtain list of cases
-local ok, cases = benchmark()
+local cases = benchmark()
 
 local handler = assert(
     cases["${case}"],
