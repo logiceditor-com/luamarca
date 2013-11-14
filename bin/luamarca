@@ -269,7 +269,9 @@ end
 time = gettime() - time
 
 -- report elapsed time
-io.write(time, "\n")
+-- NB: we prepend with NL to guarantee timing info takes the whole last line
+-- we also tag data to not interfere with possible output from the case
+io.write("\n", "LUAMARCA TIMING:", time, "\n")
 ]]
 
 do
@@ -318,6 +320,8 @@ do
       -- if run ok
       if ok then
         -- collect timing
+        -- last response line contains tagged timing info
+        response = response:match("\nLUAMARCA TIMING:([^\n]+)\n$")
         -- NB: format to conform formatter.lua
         case_results[#case_results + 1] =
         {
