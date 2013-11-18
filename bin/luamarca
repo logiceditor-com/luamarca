@@ -168,13 +168,8 @@ do
         -- TODO: allow benchmarks to specify interpreters they are meant for
         --       https://github.com/logiceditor-com/luamarca/issues/3
         --       E.g. FFI should not be benchmarked with plain Lua
-        local benchmark, err = loadfile(param.benchmark_file)
-        assert(benchmark, err)
-        local ok, cases = pcall(benchmark)
-        assert(
-            ok and is_table(cases),
-            "Benchmark must export table of case functions"
-          )
+        local benchmark = assert(loadfile(param.benchmark_file))
+        local cases = benchmark()
 
         -- TODO: fixup config_dsl
         --       https://github.com/lua-aplicado/lua-aplicado/issues/38
@@ -256,8 +251,7 @@ require "lua-nucleo"
 local gettime = socket.gettime
 
 -- load benchmark file
-local benchmark, err = loadfile("${benchmark_file}")
-assert(benchmark, err)
+local benchmark = assert(loadfile("${benchmark_file}"))
 
 -- obtain list of cases
 local cases = benchmark()
